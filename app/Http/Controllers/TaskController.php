@@ -79,7 +79,7 @@ class TaskController extends Controller
             'title' => 'required|max:250'
         ]);
         $task = Task::findOrFail($request->id);
-        $task->body = $request->body;
+        $task->title = $request->title;
         $task->update();
     }
 

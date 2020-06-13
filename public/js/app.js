@@ -2066,15 +2066,70 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: "Todo",
   props: ["todo"],
+  data: function data() {
+    return {
+      editedTodo: null,
+      beforeEditCache: "",
+      isEditTextHidden: true,
+      isLabelTextHidden: false
+    };
+  },
   methods: {
     removeTodo: function removeTodo(todo) {
       this.$store.dispatch("DELETE_TODO", todo); // this.$store.commit("CACHE_REMOVED", todo);
     },
     completeTodo: function completeTodo(todo) {
       this.$store.dispatch("COMPLETE_TODO", todo);
+    },
+    editTodo: function editTodo(todo) {
+      this.beforeEditCache = todo.title;
+      this.editedTodo = todo;
+    },
+    doneEdit: function doneEdit(todo) {
+      console.log(todo);
+
+      if (!this.editedTodo) {
+        console.log("not");
+        return;
+      }
+
+      this.editedTodo = null;
+      todo.title = todo.title.trim();
+      this.$store.dispatch("UPDATE_TODO", todo);
+      this.isEditTextHidden = true;
+      this.isLabelTextHidden = false;
+
+      if (!todo.title) {
+        this.removeTodo(todo);
+      }
+    },
+    cancelEdit: function cancelEdit(todo) {
+      this.editedTodo = null;
+      todo.title = this.beforeEditCache;
+      this.isEditTextHidden = true;
+      this.isLabelTextHidden = false;
+    }
+  },
+  directives: {
+    "todo-focus": function todoFocus(el, binding) {
+      if (binding.value) {
+        el.focus();
+      }
     }
   }
 });
@@ -2124,7 +2179,7 @@ exports = module.exports = __webpack_require__(/*! ../../../node_modules/css-loa
 
 
 // module
-exports.push([module.i, ".edit {\n  margin-left: 5px;\n  cursor: pointer;\n  font-size: 1.438rem;\n  font-weight: 600;\n  width: 1.25rem;\n  height: 1.25rem;\n  line-height: 20px;\n  text-align: center;\n}", ""]);
+exports.push([module.i, ".edit-icon {\n  margin-left: 5px;\n  cursor: pointer;\n  font-size: 1.2rem;\n  font-weight: 600;\n  width: 1.25rem;\n  height: 1.25rem;\n  line-height: 20px;\n  text-align: center;\n}\n.edit-text {\n  margin-top: -19px;\n}\n.edit-text-box {\n  margin: -18px 0px 0px 30px;\n  display: block;\n}", ""]);
 
 // exports
 
@@ -3460,66 +3515,152 @@ var render = function() {
   var _vm = this
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
-  return _c("li", { class: { completed: _vm.todo.completed } }, [
-    _c("div", { staticClass: "form-check" }, [
-      _c("label", { staticClass: "form-check-label" }, [
-        _c("input", {
-          directives: [
-            {
-              name: "model",
-              rawName: "v-model",
-              value: _vm.todo.completed,
-              expression: "todo.completed"
-            }
-          ],
-          staticClass: "checkbox",
-          attrs: { type: "checkbox", checked: "" },
-          domProps: {
-            checked: Array.isArray(_vm.todo.completed)
-              ? _vm._i(_vm.todo.completed, null) > -1
-              : _vm.todo.completed
-          },
-          on: {
-            click: function($event) {
-              return _vm.completeTodo(_vm.todo)
+  return _c(
+    "li",
+    {
+      class: {
+        completed: _vm.todo.completed,
+        editing: _vm.todo == _vm.editedTodo
+      }
+    },
+    [
+      _c("div", { staticClass: "form-check" }, [
+        _c("label", { staticClass: "form-check-label" }, [
+          _c("input", {
+            directives: [
+              {
+                name: "model",
+                rawName: "v-model",
+                value: _vm.todo.completed,
+                expression: "todo.completed"
+              }
+            ],
+            staticClass: "checkbox",
+            attrs: { type: "checkbox", checked: "" },
+            domProps: {
+              checked: Array.isArray(_vm.todo.completed)
+                ? _vm._i(_vm.todo.completed, null) > -1
+                : _vm.todo.completed
             },
-            change: function($event) {
-              var $$a = _vm.todo.completed,
-                $$el = $event.target,
-                $$c = $$el.checked ? true : false
-              if (Array.isArray($$a)) {
-                var $$v = null,
-                  $$i = _vm._i($$a, $$v)
-                if ($$el.checked) {
-                  $$i < 0 && _vm.$set(_vm.todo, "completed", $$a.concat([$$v]))
+            on: {
+              click: function($event) {
+                return _vm.completeTodo(_vm.todo)
+              },
+              change: function($event) {
+                var $$a = _vm.todo.completed,
+                  $$el = $event.target,
+                  $$c = $$el.checked ? true : false
+                if (Array.isArray($$a)) {
+                  var $$v = null,
+                    $$i = _vm._i($$a, $$v)
+                  if ($$el.checked) {
+                    $$i < 0 &&
+                      _vm.$set(_vm.todo, "completed", $$a.concat([$$v]))
+                  } else {
+                    $$i > -1 &&
+                      _vm.$set(
+                        _vm.todo,
+                        "completed",
+                        $$a.slice(0, $$i).concat($$a.slice($$i + 1))
+                      )
+                  }
                 } else {
-                  $$i > -1 &&
-                    _vm.$set(
-                      _vm.todo,
-                      "completed",
-                      $$a.slice(0, $$i).concat($$a.slice($$i + 1))
-                    )
+                  _vm.$set(_vm.todo, "completed", $$c)
                 }
-              } else {
-                _vm.$set(_vm.todo, "completed", $$c)
               }
             }
+          }),
+          _vm._v(" "),
+          _c("i", { staticClass: "input-helper" })
+        ]),
+        _vm._v(" "),
+        !_vm.isLabelTextHidden
+          ? _c("label", { staticClass: "form-check-label edit-text" }, [
+              _vm._v(_vm._s(_vm.todo.title))
+            ])
+          : _vm._e(),
+        _vm._v(" "),
+        !_vm.isEditTextHidden
+          ? _c("input", {
+              directives: [
+                {
+                  name: "model",
+                  rawName: "v-model",
+                  value: _vm.todo.title,
+                  expression: "todo.title"
+                },
+                {
+                  name: "todo-focus",
+                  rawName: "v-todo-focus",
+                  value: _vm.todo == _vm.editedTodo,
+                  expression: "todo == editedTodo"
+                }
+              ],
+              staticClass: "edit edit-text-box",
+              attrs: { type: "text" },
+              domProps: { value: _vm.todo.title },
+              on: {
+                blur: function($event) {
+                  return _vm.doneEdit(_vm.todo)
+                },
+                keyup: [
+                  function($event) {
+                    if (
+                      !$event.type.indexOf("key") &&
+                      _vm._k($event.keyCode, "enter", 13, $event.key, "Enter")
+                    ) {
+                      return null
+                    }
+                    return _vm.doneEdit(_vm.todo)
+                  },
+                  function($event) {
+                    if (
+                      !$event.type.indexOf("key") &&
+                      _vm._k($event.keyCode, "esc", 27, $event.key, [
+                        "Esc",
+                        "Escape"
+                      ])
+                    ) {
+                      return null
+                    }
+                    return _vm.cancelEdit(_vm.todo)
+                  }
+                ],
+                input: function($event) {
+                  if ($event.target.composing) {
+                    return
+                  }
+                  _vm.$set(_vm.todo, "title", $event.target.value)
+                }
+              }
+            })
+          : _vm._e()
+      ]),
+      _vm._v(" "),
+      _c("i", {
+        staticClass: "remove mdi mdi-close-circle-outline",
+        on: {
+          click: function($event) {
+            return _vm.removeTodo(_vm.todo)
           }
-        }),
-        _vm._v("\n            " + _vm._s(_vm.todo.title) + "\n            "),
-        _c("i", { staticClass: "input-helper" })
-      ])
-    ]),
-    _vm._v(" "),
-    _c("i", {
-      staticClass: "remove mdi mdi-close-circle-outline",
-      on: {
-        click: function($event) {
-          return _vm.removeTodo(_vm.todo)
         }
-      }
-    })
-  ])
+      }),
+      _vm._v("\n  |\n  "),
+      _c("i", {
+        staticClass: "edit-icon mdi fas fa-edit",
+        on: {
+          click: [
+            function($event) {
+              ;(_vm.isEditTextHidden = false), (_vm.isLabelTextHidden = true)
+            },
+            function($event) {
+              return _vm.editTodo(_vm.todo)
+            }
+          ]
+        }
+      })
+    ]
+  )
 }
 var staticRenderFns = []
 render._withStripped = true
@@ -20271,6 +20412,15 @@ var actions = {
       if (res.data === "completed") console.log("completed");
     })["catch"](function (err) {
       console.log(err);
+    });
+  },
+  UPDATE_TODO: function UPDATE_TODO(_ref5, todo) {
+    var commit = _ref5.commit;
+    console.log("im in");
+    axios__WEBPACK_IMPORTED_MODULE_0___default.a.put("/api/todos/".concat(todo.id), todo).then(function (res) {
+      if (res.data === 'updated') console.log("updated");
+    })["catch"](function (err) {
+      return console.log(err);
     });
   }
 };

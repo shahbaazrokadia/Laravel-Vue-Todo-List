@@ -17,4 +17,5 @@ use Illuminate\Support\Facades\Route;
 Route::get('todos','TaskController@index');
 Route::get('complete-todo/{id}','TaskController@completed');
 Route::post('todos','TaskController@store');
+Route::put('todos/{id}','TaskController@update');
 Route::delete('todos/{id}','TaskController@destroy');
